@@ -1,3 +1,8 @@
+# 目標
+・terraformについての理解、チュートリアルや参考サイトを通してlocalstackを使用した開発環境での動作確認ができるようにする。
+・まずはlambda->s3の構築について
+・ファイル構成を意識してterraformの開発をしたい
+
 # terraform tutorials
     https://developer.hashicorp.com/terraform/tutorials
 
