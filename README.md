@@ -10,7 +10,7 @@
 Macでの環境を想定
 
 # Version
-    Terraform v0.12.5
+     Terraform v1.2.9
     on darwin_amd64
     
 # terraform コマンド
