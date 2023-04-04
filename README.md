@@ -10,7 +10,7 @@
 Macでの環境を想定
 
 # Version
-    Terraform v1.2.9
+    Terraform v0.12.5
     on darwin_amd64
     
 # terraform コマンド
@@ -34,3 +34,19 @@ Macでの環境を想定
 
     `terraform destroy` -> yes
 
+
+ファイルについて
+
+`.teffarorm-version`
+
+テラフォームのバージョンを管理するファイル、これがあれば`tfenv install`するだけで良い
+
+## gitにアクセスキーを表示させない
+
+`brew install git-secrets`
+
+`git secrets --register-aws --global`
+
+`git secrets --install ~/.git-templates/git-secrets`
+
+`git config --global init.templatefir '~/.git-templates/git-secrets'`
