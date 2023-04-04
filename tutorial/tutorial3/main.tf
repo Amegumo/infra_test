@@ -1,12 +1,3 @@
-provider "aws" {
-  profile = var.aws_profile
-  region  = "ap-northeast-1"
-  default_tags {
-    tags = {
-      terraform-managed = "true"
-    }
-  }
-}
 data "aws_ami" "recent_amazon_linux2" {
   most_recent = true
   owners = ["amazon"]
