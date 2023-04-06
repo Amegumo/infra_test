@@ -43,6 +43,10 @@ resource "aws_s3_bucket" "public" {
 resource "aws_s3_bucket_acl" "example_bucket_acl" {
   bucket = aws_s3_bucket.public.id
   acl    =  "public-read"
+
+  tag = {
+    Name = "example-acl"
+  }
 }
 # source https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_cors_configuration
 resource "aws_s3_bucket_cors_configuration" "public_cors" {
