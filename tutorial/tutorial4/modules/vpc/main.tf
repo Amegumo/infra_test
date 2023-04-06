@@ -9,18 +9,29 @@ resource "aws_vpc" "example" {
 }
 
 # public subnet
-resource "aws_subnet" "public" {
+resource "aws_subnet" "public_0" {
   vpc_id = aws_vpc.example.id
-  cidr_block = "10.0.0.0/24"
+  cidr_block = "10.0.1.0/24"
   map_public_ip_on_launch = true # パブリックIPアドレスの割り当て
   # map_customer_owned_ip_on_launch = true 
   availability_zone = "ap-northeast-1a"
 
   tags = {
-    Name = "example-public_subnet"
+    Name = "${var.public_subnet}_a"
   }
 }
 
+resource "aws_subnet" "public_1" {
+  vpc_id = aws_vpc.example.id
+  cidr_block = "10.0.2.0/24"
+  map_public_ip_on_launch = true # パブリックIPアドレスの割り当て
+  # map_customer_owned_ip_on_launch = true 
+  availability_zone = "ap-northeast-1c"
+
+  tags = {
+    Name = "${var.public_subnet}_c"
+  }
+}
 resource "aws_internet_gateway" "example" {
   vpc_id = aws_vpc.example.id
 }
@@ -41,66 +52,116 @@ resource "aws_route" "public" {
   destination_cidr_block = "0.0.0.0/0"
 
 }
-resource "aws_route_table_association" "public" {
-  subnet_id = aws_subnet.public.id
+resource "aws_route_table_association" "public_0" {
+  subnet_id = aws_subnet.public_0.id
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table_association" "public_1" {
+  subnet_id = aws_subnet.public_1.id
   route_table_id = aws_route_table.public.id
 }
 
 # private subnet
-resource "aws_subnet" "private" {
+resource "aws_subnet" "private_0" {
   vpc_id = aws_vpc.example.id
-  cidr_block = "10.0.64.0/24" # 上記のpublic subnet と被らないようにする
+  cidr_block = "10.0.65.0/24" # 上記のpublic subnet と被らないようにする
   map_public_ip_on_launch = false # パブリックIPアドレスは割り当てない
   availability_zone = "ap-northeast-1a"
   
   tags = {
-    Name = "example-private_subnet"
+    Name = "${var.private_subnet}_a"
   }
 }
 
-resource "aws_route_table" "private" {
+resource "aws_subnet" "private_1" {
+  vpc_id = aws_vpc.example.id
+  cidr_block = "10.0.66.0/24" # 上記のpublic subnet と被らないようにする
+  map_public_ip_on_launch = false # パブリックIPアドレスは割り当てない
+  availability_zone = "ap-northeast-1c"
+  
+  tags = {
+    Name = "${var.private_subnet}_c"
+  }
+}
+
+resource "aws_route_table" "private_0" {
   vpc_id = aws_vpc.example.id
 
   tags = {
-    Name = "example-private_route_table"
+    Name = "${var.route_table}_0"
+  }
+}
+resource "aws_route_table" "private_1" {
+  vpc_id = aws_vpc.example.id
+
+  tags = {
+    Name = "${var.route_table}_1"
   }
 }
 
 # そもそも private なので、routeの作成は不要
-resource "aws_route_table_association" "private" {
-  subnet_id = aws_subnet.private.id
-  route_table_id = aws_route_table.private.id
+resource "aws_route_table_association" "private_0" {
+  subnet_id = aws_subnet.private_0.id
+  route_table_id = aws_route_table.private_0.id
+}
+resource "aws_route_table_association" "private_1" {
+  subnet_id = aws_subnet.private_1.id
+  route_table_id = aws_route_table.private_1.id
 }
 
 # To use nat_gateway
-resource "aws_eip" "nat_gateway"{
+resource "aws_eip" "nat_gateway_0"{
   vpc = true
   depends_on = [aws_internet_gateway.example]
 
   tags = {
-    Name = "example-nat_gateway"
+    Name = "${var.eip}_0"
+  }
+}
+resource "aws_eip" "nat_gateway_1"{
+  vpc = true
+  depends_on = [aws_internet_gateway.example]
+
+  tags = {
+    Name = "${var.eip}_1"
   }
 }
 
 # private subnet を 外部インターネットから接続できるようにするもの
 # subnet_idで指定するのはpublic idを指定する様子(どうして？)
-resource "aws_nat_gateway" "example" {
-  allocation_id = aws_eip.nat_gateway.id
-  subnet_id = aws_subnet.public.id
+resource "aws_nat_gateway" "nat_gateway_0" {
+  allocation_id = aws_eip.nat_gateway_0.id
+  subnet_id = aws_subnet.public_0.id
   depends_on = [aws_internet_gateway.example]
 
   tags = {
-    Name = "example-nat_gateway"
+    Name = "${var.nat_gateway}_0"
+  }
+}
+
+resource "aws_nat_gateway" "nat_gateway_1" {
+  allocation_id = aws_eip.nat_gateway_1.id
+  subnet_id = aws_subnet.public_1.id
+  depends_on = [aws_internet_gateway.example]
+
+  tags = {
+    Name = "${var.nat_gateway}_1"
   }
 }
 
 # ルートを定義
-resource "aws_route" "private" {
-  route_table_id = aws_route_table.private.id
-  nat_gateway_id = aws_nat_gateway.example.id #* publicの時のgatewayとは別にnat_gatewayを選択している
+resource "aws_route" "private_0" {
+  route_table_id = aws_route_table.private_0.id
+  nat_gateway_id = aws_nat_gateway.nat_gateway_0.id #* publicの時のgatewayとは別にnat_gatewayを選択している
   destination_cidr_block = "0.0.0.0/0"
 }
 
+resource "aws_route" "private_1" {
+  route_table_id = aws_route_table.private_1.id
+  nat_gateway_id = aws_nat_gateway.nat_gateway_1.id #* publicの時のgatewayとは別にnat_gatewayを選択している
+  destination_cidr_block = "0.0.0.0/0"
+}
 /**
   EIPやNAT gatewayは暗黙的にインターネットゲートウェイに依存している
   depends_onは明示的にインターネットゲートウェイを作成後にリソースを作成するという指示を出している。
