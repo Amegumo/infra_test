@@ -15,7 +15,8 @@ provider "aws" {
     }
   }
 }
-
+/*
+# iam role for ec2
 module "describe_regions_for_ec2" {
  source     = "./modules/iam_role"
  name       = "describe-regions-for-ec2"
@@ -23,6 +24,11 @@ module "describe_regions_for_ec2" {
  policy     = data.aws_iam_policy_document.allow_describe_regions.json
 }
 
+# s3 buckets
 module "aws_s3_bucket" {
   source = "./modules/s3"
+}
+*/
+module "aws_vpc" {
+  source = "./modules/vpc"
 }
